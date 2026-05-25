@@ -1,6 +1,7 @@
 name = "smartfarm-microgreen-api"
 main = "worker/index.js"
 compatibility_date = "2026-05-25"
+pages_build_output_dir = "dist"
 
 [[d1_databases]]
 binding = "DB"
