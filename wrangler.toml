@@ -1,0 +1,8 @@
+name = "smartfarm-microgreen-api"
+main = "worker/index.js"
+compatibility_date = "2026-05-25"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "smartfarm-microgreen-os"
+database_id = "9d670990-7969-4b70-8a6e-b51aa02ab276"

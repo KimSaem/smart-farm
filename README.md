@@ -1,6 +1,6 @@
-# Microgreen Command Center
+# SmartFarm Microgreen Command Center
 
-대기업급 마이크로그린 재배 시스템을 설치하고 운영하기 위한 클라우드 관제 웹앱입니다.
+대기업급 마이크로그린 재배 시스템을 설치하고 운영하기 위한 Cloudflare 기반 관제 웹앱입니다.
 
 ## 포함된 기능
 
@@ -9,7 +9,8 @@
 - 배치별 파종일, 수확 예정일, 예상 수확량 관리
 - 작물별 표준 레시피: 발아일, 조명 시간, PPFD, 습도, 수확일
 - 설치 BOM: 랙, LED, 급수, 센서, 위생 라인 기준
-- Cloudflare Pages 배포에 맞춘 Vite 정적 앱 구조
+- Cloudflare D1 데이터베이스와 Worker API 연결
+- 알림, SOP 작업 큐, QC 게이트, 자동제어 명령 센터
 
 ## 로컬 실행
 
@@ -18,6 +19,14 @@ npm install
 npm run dev
 ```
 
+## 현재 클라우드 리소스
+
+- D1 database: `smartfarm-microgreen-os`
+- D1 id: `9d670990-7969-4b70-8a6e-b51aa02ab276`
+- Worker API: `https://smartfarm-microgreen-api.rlatoa2201.workers.dev`
+- Pages project: `smartfarm-microgreen-command`
+- Pages domain: `smartfarm-microgreen-command.pages.dev`
+
 ## 클라우드 배포
 
 Cloudflare Pages 기준:
@@ -25,9 +34,11 @@ Cloudflare Pages 기준:
 - Framework preset: `Vite`
 - Build command: `npm run build`
 - Build output directory: `dist`
-- Root directory: `microgreen-command-center`
+- Environment variable: `VITE_API_URL=https://smartfarm-microgreen-api.rlatoa2201.workers.dev`
 
 GitHub 저장소에 올린 뒤 Cloudflare Pages에서 저장소를 연결하면 자동 배포됩니다.
+
+Worker API는 이미 Cloudflare에 배포되어 있고, 같은 코드는 `worker/index.js`에 보관되어 있습니다.
 
 ## 현장 설치 기준
 
