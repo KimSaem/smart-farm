@@ -235,6 +235,7 @@ button:disabled {
 .main-grid,
 .tables,
 .ops-grid,
+.wow-grid,
 .equipment-grid,
 .recipe-grid {
   display: grid;
@@ -266,6 +267,107 @@ button:disabled {
   min-height: 34px;
   background: #edf4ef;
   box-shadow: none;
+}
+
+.autopilot-panel {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.2fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid #cddbd2;
+  border-radius: 8px;
+  background: linear-gradient(120deg, #ffffff, #eff8f2);
+  box-shadow: 0 14px 38px rgba(37, 52, 43, 0.08);
+}
+
+.autopilot-core {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.autopilot-core p {
+  margin-bottom: 4px;
+  color: #65736c;
+  font-size: 13px;
+}
+
+.score-ring {
+  --score: 86%;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #ffffff 58%, transparent 59%),
+    conic-gradient(#1f7a5a var(--score), #dfe8e2 0);
+}
+
+.score-ring span,
+.score-ring small {
+  grid-area: 1 / 1;
+}
+
+.score-ring span {
+  margin-top: -10px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.score-ring small {
+  margin-top: 34px;
+  color: #65736c;
+  font-size: 11px;
+}
+
+.muted {
+  color: #5b6962;
+  font-size: 13px;
+}
+
+.recommendation-list,
+.autopilot-actions,
+.passport-list,
+.radar-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.recommendation-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.recommendation-list article,
+.passport-list article {
+  min-height: 86px;
+  padding: 12px;
+  border-radius: 7px;
+  background: #f7faf8;
+  border: 1px solid #e1e8e3;
+}
+
+.recommendation-list strong,
+.recommendation-list span,
+.passport-list strong,
+.passport-list span,
+.passport-list small {
+  display: block;
+}
+
+.recommendation-list span,
+.passport-list span,
+.passport-list small {
+  margin-top: 4px;
+  color: #5b6962;
+  font-size: 13px;
+}
+
+.autopilot-actions button {
+  min-width: 164px;
+  justify-content: flex-start;
 }
 
 .stat-card,
@@ -494,6 +596,10 @@ button:disabled {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.wow-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
+}
+
 .alert-list,
 .control-grid,
 .qc-list,
@@ -607,6 +713,26 @@ button:disabled {
   background: #f7faf8;
 }
 
+.radar-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.radar-grid span {
+  min-height: 72px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 14px;
+  border-radius: 7px;
+  background: #f7faf8;
+  color: #5b6962;
+}
+
+.radar-grid b {
+  color: #18231f;
+  font-size: 26px;
+}
+
 .data-table {
   display: grid;
   gap: 8px;
@@ -694,9 +820,15 @@ button:disabled {
   }
 
   .hero,
+  .autopilot-panel,
   .main-grid,
   .tables,
-  .ops-grid {
+  .ops-grid,
+  .wow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-list {
     grid-template-columns: 1fr;
   }
 
@@ -727,7 +859,8 @@ button:disabled {
   .metrics,
   .zone-grid,
   .equipment-grid,
-  .recipe-grid {
+  .recipe-grid,
+  .radar-grid {
     grid-template-columns: 1fr;
   }
 
