@@ -65,38 +65,26 @@ const fallback = {
     { zone_id: "grow-2", temp: 22.1, humidity: 52, co2: 760, ppfd: 265, water_level: 72, ph: 5.9, ec: 0.8 },
     { zone_id: "harvest", temp: 18.6, humidity: 47, co2: 440, ppfd: 80, water_level: 51, ph: 5.9, ec: 0.5 },
   ],
-  batches: [
-    { id: "B-260525-01", crop: "브로콜리", trays: 48, expected_harvest_at: "2026-06-01T08:00:00+12:00", expected_yield_kg: 11.5, status: "germinating", zone_name: "발아실 A" },
-    { id: "B-260524-03", crop: "완두순", trays: 36, expected_harvest_at: "2026-05-30T08:00:00+12:00", expected_yield_kg: 18, status: "growing", zone_name: "생장랙 1" },
-    { id: "B-260523-02", crop: "적양배추", trays: 42, expected_harvest_at: "2026-05-31T08:00:00+12:00", expected_yield_kg: 8.4, status: "growing", zone_name: "생장랙 2" },
-    { id: "B-260519-04", crop: "무", trays: 30, expected_harvest_at: "2026-05-26T08:00:00+12:00", expected_yield_kg: 7.2, status: "ready", zone_name: "수확/포장" },
-  ],
-  alerts: [
-    { id: "AL-260525-01", severity: "high", title: "발아실 습도 상한 접근", detail: "덮개 제거와 환기 확인 필요", status: "open" },
-    { id: "AL-260525-02", severity: "medium", title: "LED 렌즈 점검 예정", detail: "랙 2 PPFD 편차 확인", status: "open" },
-  ],
-  tasks: [
-    { id: "T-001", label: "발아실 A 덮개 제거", owner: "Grow Ops", due_at: "2026-05-25T09:20:00+12:00", priority: "high", status: "open" },
-    { id: "T-002", label: "저수조 pH 6.1 -> 5.9 보정", owner: "Automation", due_at: "2026-05-25T10:00:00+12:00", priority: "medium", status: "open" },
-    { id: "T-003", label: "랙 2 LED 렌즈 표면 점검", owner: "Maintenance", due_at: "2026-05-25T13:30:00+12:00", priority: "low", status: "open" },
-    { id: "T-004", label: "수확 배치 QC 샘플링", owner: "QA", due_at: "2026-05-25T15:00:00+12:00", priority: "high", status: "open" },
-  ],
+  batches: [],
+  alerts: [],
+  tasks: [],
+  commands: [],
   trend: [],
 };
 
 const recipes = [
-  { crop: "브로콜리", germ: "3일", light: "16h", ppfd: 210, humidity: "55%", harvest: "9일" },
-  { crop: "무", germ: "2일", light: "14h", ppfd: 190, humidity: "50%", harvest: "7일" },
-  { crop: "완두순", germ: "3일", light: "16h", ppfd: 240, humidity: "58%", harvest: "10일" },
-  { crop: "적양배추", germ: "3일", light: "17h", ppfd: 260, humidity: "52%", harvest: "10일" },
+  { id: "broccoli", crop: "브로콜리", germ: "3일", light: "16h", ppfd: 210, humidity: "55%", harvest: "9일" },
+  { id: "radish", crop: "무", germ: "2일", light: "14h", ppfd: 190, humidity: "50%", harvest: "7일" },
+  { id: "pea", crop: "완두순", germ: "3일", light: "16h", ppfd: 240, humidity: "58%", harvest: "10일" },
+  { id: "red-cabbage", crop: "적양배추", germ: "3일", light: "17h", ppfd: 260, humidity: "52%", harvest: "10일" },
 ];
 
 const equipment = [
-  { name: "6단 수직 재배랙", spec: "랙당 A1 트레이 48장, 6랙 시작", status: "288트레이 셀" },
-  { name: "조명 제어", spec: "풀스펙트럼 LED, PPFD 레시피", status: "디밍 준비" },
-  { name: "Ebb & Flow 급수", spec: "저수조, 펌프, 필터, pH/EC", status: "자동화 준비" },
-  { name: "센서 네트워크", spec: "온습도, CO2, PPFD, 수위", status: "D1 저장" },
-  { name: "위생/QC 라인", spec: "세척, 살균, 배치 추적", status: "SOP 운영" },
+  { name: "Raspberry Pi Gateway", spec: "센서 수집, 로컬 캐시, 명령 실행", status: "권장" },
+  { name: "ESP32 Sensor Nodes", spec: "랙별 온습도, 수위, PPFD 송신", status: "확장" },
+  { name: "PLC / Relay Board", spec: "팬, 펌프, LED 오버라이드", status: "제어" },
+  { name: "Cloudflare D1", spec: "배치, 센서, 알림, 명령 저장", status: "운영중" },
+  { name: "QC SOP Line", spec: "세척, 살균, 수확 전 확인", status: "추적" },
 ];
 
 function makeTelemetry(seed = 0) {
@@ -133,7 +121,7 @@ function StatCard({ icon: Icon, label, value, trend, tone }) {
   );
 }
 
-function ZoneCard({ zone, reading }) {
+function ZoneCard({ zone, reading, onCommand, busy }) {
   const healthy = zone.status === "online";
   const phase = zone.kind === "germination" ? "Blackout / Germination" : zone.kind === "harvest" ? "Harvest & Pack" : "Canopy Build";
   return (
@@ -162,6 +150,10 @@ function ZoneCard({ zone, reading }) {
         <div><small>저수조</small><b>{reading.water_level}%</b></div>
         <div className="bar"><i style={{ width: `${reading.water_level}%` }} /></div>
       </div>
+      <div className="mini-actions">
+        <button disabled={busy} onClick={() => onCommand(zone.id, "vent_boost", { minutes: 15 })}><Fan size={15} />환기</button>
+        <button disabled={busy} onClick={() => onCommand(zone.id, "water_cycle", { seconds: 45 })}><Droplets size={15} />급수</button>
+      </div>
     </article>
   );
 }
@@ -171,23 +163,48 @@ function App() {
   const [tick, setTick] = useState(0);
   const [data, setData] = useState(fallback);
   const [cloud, setCloud] = useState("connecting");
+  const [busy, setBusy] = useState("");
+  const [toast, setToast] = useState("시스템 준비 중");
   const generatedTrend = useMemo(() => makeTelemetry(tick), [tick]);
   const trend = data.trend?.length ? data.trend : generatedTrend;
 
-  async function loadSummary() {
+  async function api(path, options = {}) {
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      ...options,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `API ${response.status}`);
+    return payload;
+  }
+
+  async function loadSummary(message) {
     try {
-      const response = await fetch(`${API_URL}/api/summary`);
-      if (!response.ok) throw new Error(`API ${response.status}`);
-      setData(await response.json());
+      const payload = await api("/api/summary");
+      setData(payload);
       setCloud("online");
-    } catch {
+      if (message) setToast(message);
+    } catch (error) {
       setData(fallback);
       setCloud("offline");
+      setToast(`API 연결 실패: ${error.message}`);
+    }
+  }
+
+  async function runAction(label, action) {
+    setBusy(label);
+    try {
+      await action();
+      await loadSummary(`${label} 완료`);
+    } catch (error) {
+      setToast(`${label} 실패: ${error.message}`);
+    } finally {
+      setBusy("");
     }
   }
 
   useEffect(() => {
-    loadSummary();
+    loadSummary("Cloudflare 데이터 연결됨");
   }, []);
 
   useEffect(() => {
@@ -195,7 +212,7 @@ function App() {
     const timer = window.setInterval(() => {
       setTick((value) => value + 1);
       loadSummary();
-    }, 8000);
+    }, 6000);
     return () => window.clearInterval(timer);
   }, [running]);
 
@@ -204,6 +221,15 @@ function App() {
   const totalTrays = data.batches.reduce((sum, batch) => sum + batch.trays, 0);
   const expectedYield = data.batches.reduce((sum, batch) => sum + Number(batch.expected_yield_kg || 0), 0).toFixed(1);
   const openAlerts = data.alerts.filter((alert) => alert.status === "open");
+  const queuedCommands = data.commands?.filter((command) => command.status === "queued").length || 0;
+
+  const createCommand = (zoneId, commandType, payload) =>
+    runAction("명령 큐 등록", () =>
+      api("/api/commands", {
+        method: "POST",
+        body: JSON.stringify({ zone_id: zoneId, command_type: commandType, payload }),
+      }),
+    );
 
   return (
     <main className="shell">
@@ -218,26 +244,26 @@ function App() {
         <nav>
           <a className="active"><Factory size={18} />관제센터</a>
           <a><Database size={18} />D1 데이터</a>
-          <a><Cpu size={18} />자동제어</a>
+          <a><Cpu size={18} />Raspberry Pi</a>
           <a><ShieldCheck size={18} />위생/QC</a>
           <a><Cloud size={18} />Cloudflare</a>
         </nav>
         <div className="install-panel">
           <RadioTower size={20} />
-          <b>Cloudflare 연결됨</b>
-          <p>D1: smartfarm-microgreen-os<br />Worker: smartfarm-microgreen-api</p>
+          <b>현장 연결 준비됨</b>
+          <p>Pi가 `/api/telemetry`로 송신하고 `/api/commands`를 폴링하면 자동 운전이 시작됩니다.</p>
         </div>
       </aside>
 
       <section className="content">
         <header className="topbar">
           <div>
-            <p>2026-05-25 · {data.farm?.timezone || "Pacific/Auckland"}</p>
+            <p>2026-05-26 · {data.farm?.timezone || "Pacific/Auckland"}</p>
             <h1>{data.farm?.name || "마이크로그린 통합 생산 관제"}</h1>
           </div>
           <div className="actions">
-            <button title="새 배치 추가"><Plus size={18} /></button>
-            <button title="데이터 새로고침" onClick={loadSummary}><RefreshCcw size={18} /></button>
+            <button disabled={Boolean(busy)} title="새 배치 추가" onClick={() => runAction("새 배치 추가", () => api("/api/batches", { method: "POST", body: JSON.stringify({ recipe_id: "broccoli", zone_id: "germ-a", trays: 24 }) }))}><Plus size={18} /></button>
+            <button disabled={Boolean(busy)} title="센서 리런" onClick={() => runAction("센서 리런", () => api("/api/demo-tick", { method: "POST" }))}><RefreshCcw size={18} /></button>
             <button className="primary" onClick={() => setRunning((value) => !value)}>
               {running ? <Pause size={18} /> : <Play size={18} />}
               {running ? "실시간 수신 중" : "수신 일시정지"}
@@ -248,13 +274,13 @@ function App() {
         <section className="hero">
           <div className="hero-copy">
             <div className={`live ${cloud}`}><Wifi size={16} />{cloud === "online" ? "Cloudflare API online" : "Fallback demo mode"}</div>
-            <h2>센서, 배치, 품질, 수확 예측을 클라우드에서 통합 제어하는 스마트팜 운영실</h2>
-            <p>현장 설치 후 ESP32, PLC, Raspberry Pi가 Worker API로 데이터를 보내면 D1에 저장되고 이 화면에서 바로 관제됩니다.</p>
+            <h2>라즈베리파이 게이트웨이와 연결되는 기업형 마이크로그린 운영실</h2>
+            <p>센서 데이터, 배치 추가, 알림 확인, 작업 완료, 팬/펌프/LED 명령이 모두 D1에 기록되고 화면에 바로 반영됩니다.</p>
           </div>
           <div className="hero-grid">
             <StatCard icon={Boxes} label="운영 트레이" value={`${totalTrays}장`} trend={`${data.batches.length}개 배치 활성`} />
             <StatCard icon={TrendingUp} label="예상 수확" value={`${expectedYield}kg`} trend="다음 7일" tone="green" />
-            <StatCard icon={AlertTriangle} label="주의 알림" value={`${openAlerts.length}건`} trend="미확인 알림" tone="amber" />
+            <StatCard icon={Zap} label="명령 대기" value={`${queuedCommands}건`} trend="Pi 실행 큐" tone="amber" />
           </div>
         </section>
 
@@ -263,6 +289,11 @@ function App() {
           <StatCard icon={Droplets} label="대표 습도" value={`${current.humidity}%`} trend="목표 45-60%" />
           <StatCard icon={Lightbulb} label="대표 광량" value={`${current.ppfd} PPFD`} trend="랙별 레시피 적용" />
           <StatCard icon={Gauge} label="CO2" value={`${current.co2} ppm`} trend="안정 범위" />
+        </section>
+
+        <section className="status-strip">
+          <span>{toast}</span>
+          <button disabled={Boolean(busy)} onClick={() => loadSummary("수동 새로고침 완료")}><RefreshCcw size={16} />새로고침</button>
         </section>
 
         <section className="main-grid">
@@ -295,6 +326,7 @@ function App() {
                 <article className={`task ${task.priority}`} key={task.id}>
                   <b>{timeOnly(task.due_at)}</b>
                   <div><strong>{task.label}</strong><span>{task.owner}</span></div>
+                  <button disabled={Boolean(busy)} onClick={() => runAction("작업 완료", () => api(`/api/tasks/${task.id}/complete`, { method: "POST" }))}>완료</button>
                 </article>
               ))}
             </div>
@@ -303,7 +335,13 @@ function App() {
 
         <section className="zone-grid">
           {data.zones.map((zone) => (
-            <ZoneCard zone={zone} reading={latestByZone[zone.id] || fallback.latest[0]} key={zone.id} />
+            <ZoneCard
+              zone={zone}
+              reading={latestByZone[zone.id] || fallback.latest[0]}
+              key={zone.id}
+              busy={Boolean(busy)}
+              onCommand={createCommand}
+            />
           ))}
         </section>
 
@@ -315,26 +353,31 @@ function App() {
                 <article className={`alert ${alert.severity}`} key={alert.id}>
                   <strong>{alert.title}</strong>
                   <span>{alert.detail}</span>
+                  <button disabled={Boolean(busy)} onClick={() => runAction("알림 확인", () => api(`/api/alerts/${alert.id}/ack`, { method: "POST" }))}>확인</button>
                 </article>
               ))}
+              {openAlerts.length === 0 && <div className="empty-state">열린 알림이 없습니다.</div>}
             </div>
           </div>
           <div className="panel">
             <div className="panel-head"><div><p>자동제어</p><h2>명령 센터</h2></div><Zap size={20} /></div>
             <div className="control-grid">
-              <button><Fan size={18} />환기 강화</button>
-              <button><Lightbulb size={18} />광량 레시피 적용</button>
-              <button><Droplets size={18} />급수 사이클 예약</button>
-              <button><Lock size={18} />수동 오버라이드 잠금</button>
+              <button disabled={Boolean(busy)} onClick={() => createCommand("grow-1", "vent_boost", { minutes: 15 })}><Fan size={18} />환기 강화</button>
+              <button disabled={Boolean(busy)} onClick={() => createCommand("grow-2", "apply_light_recipe", { ppfd: 260, hours: 17 })}><Lightbulb size={18} />광량 레시피</button>
+              <button disabled={Boolean(busy)} onClick={() => createCommand("grow-1", "water_cycle", { seconds: 45 })}><Droplets size={18} />급수 사이클</button>
+              <button disabled={Boolean(busy)} onClick={() => createCommand("harvest", "manual_lock", { locked: true })}><Lock size={18} />수동 잠금</button>
             </div>
           </div>
           <div className="panel">
-            <div className="panel-head"><div><p>품질</p><h2>QC 게이트</h2></div><ShieldCheck size={20} /></div>
-            <div className="qc-list">
-              <span><CheckCircle2 size={16} />씨앗 로트 추적</span>
-              <span><CheckCircle2 size={16} />트레이 세척 기록</span>
-              <span><CheckCircle2 size={16} />수확 전 샘플링</span>
-              <span><CheckCircle2 size={16} />냉장 출하 대기</span>
+            <div className="panel-head"><div><p>Pi 명령 큐</p><h2>현장 실행 대기</h2></div><Cpu size={20} /></div>
+            <div className="command-list">
+              {(data.commands || []).slice(0, 5).map((command) => (
+                <article key={command.id}>
+                  <strong>{command.command_type}</strong>
+                  <span>{command.zone_id} · {command.status}</span>
+                </article>
+              ))}
+              {(!data.commands || data.commands.length === 0) && <div className="empty-state">대기 중인 명령이 없습니다.</div>}
             </div>
           </div>
         </section>
@@ -359,7 +402,7 @@ function App() {
             <div className="panel-head"><div><p>작물 레시피</p><h2>표준 생장 조건</h2></div><TimerReset size={20} /></div>
             <div className="recipe-grid">
               {recipes.map((recipe) => (
-                <article key={recipe.crop}>
+                <article key={recipe.id}>
                   <strong>{recipe.crop}</strong>
                   <span>발아 {recipe.germ}</span>
                   <span>조명 {recipe.light}</span>
@@ -372,7 +415,7 @@ function App() {
         </section>
 
         <section className="panel equipment">
-          <div className="panel-head"><div><p>설치 BOM</p><h2>현장 구축 기준</h2></div><PackageCheck size={20} /></div>
+          <div className="panel-head"><div><p>대기업급 설치 BOM</p><h2>현장 구축 기준</h2></div><PackageCheck size={20} /></div>
           <div className="equipment-grid">
             {equipment.map((item) => (
               <article key={item.name}>

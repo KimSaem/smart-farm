@@ -186,6 +186,11 @@ button.primary {
   padding: 0 16px;
 }
 
+button:disabled {
+  cursor: progress;
+  opacity: 0.62;
+}
+
 .hero {
   min-height: 280px;
   display: grid;
@@ -242,6 +247,25 @@ button.primary {
 
 .metrics {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.status-strip {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #d9e2dc;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #405048;
+}
+
+.status-strip button {
+  min-height: 34px;
+  background: #edf4ef;
+  box-shadow: none;
 }
 
 .stat-card,
@@ -357,6 +381,13 @@ button.primary {
   border-left: 4px solid #8eb09d;
 }
 
+.task button {
+  margin-left: auto;
+  min-height: 34px;
+  background: #edf4ef;
+  box-shadow: none;
+}
+
 .task.high {
   border-color: #ef6f51;
 }
@@ -465,7 +496,8 @@ button.primary {
 
 .alert-list,
 .control-grid,
-.qc-list {
+.qc-list,
+.command-list {
   display: grid;
   gap: 10px;
 }
@@ -492,6 +524,13 @@ button.primary {
   margin-top: 4px;
   color: #5b6962;
   font-size: 13px;
+}
+
+.alert button {
+  margin-top: 10px;
+  min-height: 34px;
+  background: #edf4ef;
+  box-shadow: none;
 }
 
 .control-grid {
@@ -528,6 +567,44 @@ button.primary {
   color: #405048;
   font-size: 13px;
   font-weight: 700;
+}
+
+.mini-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.mini-actions button {
+  min-height: 34px;
+  background: #f7faf8;
+  box-shadow: none;
+  border: 1px solid #e1e8e3;
+}
+
+.command-list article {
+  min-height: 56px;
+  padding: 12px;
+  border-radius: 7px;
+  background: #f7faf8;
+}
+
+.command-list strong,
+.command-list span {
+  display: block;
+}
+
+.command-list span,
+.empty-state {
+  color: #5b6962;
+  font-size: 13px;
+}
+
+.empty-state {
+  padding: 14px;
+  border-radius: 7px;
+  background: #f7faf8;
 }
 
 .data-table {

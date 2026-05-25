@@ -11,6 +11,8 @@
 - 설치 BOM: 랙, LED, 급수, 센서, 위생 라인 기준
 - Cloudflare D1 데이터베이스와 Worker API 연결
 - 알림, SOP 작업 큐, QC 게이트, 자동제어 명령 센터
+- Raspberry Pi 게이트웨이용 센서 송신/명령 폴링 스크립트
+- 화면 버튼 액션: 센서 리런, 새 배치, 작업 완료, 알림 확인, 팬/급수/조명 명령 큐
 
 ## 로컬 실행
 
@@ -39,6 +41,21 @@ Cloudflare Pages 기준:
 GitHub 저장소에 올린 뒤 Cloudflare Pages에서 저장소를 연결하면 자동 배포됩니다.
 
 Worker API는 이미 Cloudflare에 배포되어 있고, 같은 코드는 `worker/index.js`에 보관되어 있습니다.
+
+## Raspberry Pi 연결
+
+`raspberry-pi/smartfarm_gateway.py`를 라즈베리파이에 올려 실행하면 됩니다. 기본 흐름은 다음과 같습니다.
+
+```text
+read_sensors()
+  -> POST /api/telemetry
+fetch_commands()
+  -> GET /api/commands?zone_id=grow-1&claim=1
+execute_command()
+  -> POST /api/commands/{id}/complete
+```
+
+실제 센서와 릴레이 코드는 `read_sensors()`와 `execute_command()` 안에 연결합니다.
 
 ## 현장 설치 기준
 
