@@ -57,6 +57,8 @@ execute_command()
 
 실제 센서와 릴레이 코드는 `read_sensors()`와 `execute_command()` 안에 연결합니다.
 
+Arduino를 같이 쓰는 실제 하드웨어 구성은 `HARDWARE_INTEGRATION.md`와 `arduino/smartfarm_io_controller`를 참고하세요.
+
 ## 현장 설치 기준
 
 1. 6단 수직 재배랙을 기준 단위로 설치합니다.

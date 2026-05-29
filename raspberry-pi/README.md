@@ -24,7 +24,19 @@ export SMARTFARM_ZONE_ID="grow-1"
 
 ## 실제 센서 연결 지점
 
-`smartfarm_gateway.py`의 `read_sensors()` 함수 안을 실제 센서 코드로 교체하면 됩니다.
+두 가지 모드가 있습니다.
+
+- `smartfarm_gateway.py`: Pi 단독 시뮬레이션/센서 직접 연결 모드
+- `smartfarm_serial_gateway.py`: Arduino가 IO를 맡고 Pi가 클라우드 게이트웨이를 맡는 권장 모드
+
+Arduino를 USB로 연결한 뒤:
+
+```bash
+export SMARTFARM_SERIAL_PORT="/dev/ttyACM0"
+python smartfarm_serial_gateway.py
+```
+
+`smartfarm_gateway.py`의 `read_sensors()` 함수 안을 실제 센서 코드로 교체하면 Pi 단독 모드로도 운용할 수 있습니다.
 
 - 온습도: SHT31, BME280, DHT22
 - CO2: SCD30, SCD41
